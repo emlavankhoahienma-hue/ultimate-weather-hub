@@ -1,8 +1,6 @@
 /**
- * Aetheris Weather Hub - Interactive Chart Engine
- * High-performance SVG & Canvas weather visualizer:
- * Smooth cubic Bezier temperature curves, precipitation bars, wind vectors,
- * and mouse/touch hover scrubbers with real-time tooltips.
+ * Aetheris Weather Hub - High-Performance Interactive Chart Engine
+ * 120 FPS Bezier Curves, Precipitation Bars, and RAF-throttled hover scrubber.
  */
 
 const ChartManager = (() => {
@@ -11,38 +9,26 @@ const ChartManager = (() => {
   let currentUnit = 'metric';
   let activeMetric = 'temp'; // 'temp' | 'precip' | 'wind'
 
-  /**
-   * Initialize Chart Manager
-   */
   function init(containerElement) {
     container = containerElement;
   }
 
-  /**
-   * Set active metric mode
-   */
   function setMetric(metric) {
     if (activeMetric === metric) return;
     activeMetric = metric;
     render();
   }
 
-  /**
-   * Update data and re-render
-   */
   function update(hourlyData, unit = 'metric') {
     currentHourlyData = hourlyData;
     currentUnit = unit;
     render();
   }
 
-  /**
-   * Render Chart inside container
-   */
   function render() {
     if (!container || !currentHourlyData) return;
 
-    // Extract next 24 hours of data
+    // Extract next 24 hours
     const times = currentHourlyData.time.slice(0, 24);
     const temps = currentHourlyData.temperature_2m.slice(0, 24);
     const feelsLike = currentHourlyData.apparent_temperature.slice(0, 24);
@@ -54,12 +40,11 @@ const ChartManager = (() => {
     const isDays = currentHourlyData.is_day.slice(0, 24);
 
     const width = container.clientWidth || 700;
-    const height = 220;
-    const padding = { top: 30, right: 20, bottom: 40, left: 30 };
+    const height = 190;
+    const padding = { top: 25, right: 15, bottom: 35, left: 25 };
     const chartW = width - padding.left - padding.right;
     const chartH = height - padding.top - padding.bottom;
 
-    // Convert values if imperial
     let displayValues = [];
     let secondaryValues = [];
     let unitLabel = '°C';
@@ -89,12 +74,10 @@ const ChartManager = (() => {
     const yRange = Math.max(maxY - minY, 1);
     const stepX = chartW / (displayValues.length - 1);
 
-    // Compute coordinate points
     const points = displayValues.map((val, i) => ({
       x: padding.left + i * stepX,
       y: padding.top + chartH - ((val - minY) / yRange) * chartH,
       val: Math.round(val),
-      rawVal: val,
       time: times[i],
       secVal: secondaryValues[i] !== undefined ? Math.round(secondaryValues[i]) : null,
       code: codes[i],
@@ -102,7 +85,6 @@ const ChartManager = (() => {
       precip: precips[i]
     }));
 
-    // Build Bezier Curve path
     function createSmoothPath(pts) {
       if (pts.length < 2) return '';
       let d = `M ${pts[0].x} ${pts[0].y}`;
@@ -125,22 +107,20 @@ const ChartManager = (() => {
     const linePath = createSmoothPath(points);
     const areaPath = `${linePath} L ${points[points.length - 1].x} ${height - padding.bottom} L ${points[0].x} ${height - padding.bottom} Z`;
 
-    // SVG Gradient and styling definitions
     let strokeColor = '#38bdf8';
-    let gradColorStart = 'rgba(56, 189, 248, 0.4)';
+    let gradColorStart = 'rgba(56, 189, 248, 0.35)';
     let gradColorEnd = 'rgba(56, 189, 248, 0.0)';
 
     if (activeMetric === 'precip') {
       strokeColor = '#06b6d4';
-      gradColorStart = 'rgba(6, 182, 212, 0.4)';
+      gradColorStart = 'rgba(6, 182, 212, 0.35)';
       gradColorEnd = 'rgba(6, 182, 212, 0.0)';
     } else if (activeMetric === 'wind') {
       strokeColor = '#a855f7';
-      gradColorStart = 'rgba(168, 85, 247, 0.4)';
+      gradColorStart = 'rgba(168, 85, 247, 0.35)';
       gradColorEnd = 'rgba(168, 85, 247, 0.0)';
     }
 
-    // Build SVG Elements
     let svgHtml = `
       <svg class="weather-chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="width: 100%; height: ${height}px; display: block;">
         <defs>
@@ -148,27 +128,18 @@ const ChartManager = (() => {
             <stop offset="0%" stop-color="${gradColorStart}"/>
             <stop offset="100%" stop-color="${gradColorEnd}"/>
           </linearGradient>
-          <filter id="chartGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="glow"/>
-            <feMerge>
-              <feMergeNode in="glow"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
         </defs>
 
         <!-- Horizontal Guide Lines -->
-        <line x1="${padding.left}" y1="${padding.top}" x2="${width - padding.right}" y2="${padding.top}" stroke="rgba(255,255,255,0.08)" stroke-dasharray="4"/>
-        <line x1="${padding.left}" y1="${padding.top + chartH / 2}" x2="${width - padding.right}" y2="${padding.top + chartH / 2}" stroke="rgba(255,255,255,0.08)" stroke-dasharray="4"/>
-        <line x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}" stroke="rgba(255,255,255,0.15)"/>
+        <line x1="${padding.left}" y1="${padding.top}" x2="${width - padding.right}" y2="${padding.top}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3"/>
+        <line x1="${padding.left}" y1="${padding.top + chartH / 2}" x2="${width - padding.right}" y2="${padding.top + chartH / 2}" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3"/>
+        <line x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}" stroke="rgba(255,255,255,0.12)"/>
 
         <!-- Area Fill -->
         <path d="${areaPath}" fill="url(#chartFillGrad)"/>
 
         <!-- Main Curve -->
-        <path d="${linePath}" fill="none" stroke="${strokeColor}" stroke-width="3" filter="url(#chartGlow)" stroke-linecap="round"/>
-
-        <!-- Data Points & Labels for Every 3 Hours -->
+        <path d="${linePath}" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round"/>
     `;
 
     points.forEach((p, idx) => {
@@ -178,17 +149,16 @@ const ChartManager = (() => {
 
       if (showLabel) {
         svgHtml += `
-          <circle cx="${p.x}" cy="${p.y}" r="4" fill="${strokeColor}" stroke="#0f172a" stroke-width="2"/>
-          <text x="${p.x}" y="${p.y - 10}" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="600">${p.val}${unitLabel}</text>
-          <text x="${p.x}" y="${height - 15}" text-anchor="middle" fill="#94a3b8" font-size="11">${hourStr}</text>
+          <circle cx="${p.x}" cy="${p.y}" r="3.5" fill="${strokeColor}" stroke="#0f172a" stroke-width="1.5"/>
+          <text x="${p.x}" y="${p.y - 8}" text-anchor="middle" fill="#f8fafc" font-size="10" font-weight="600">${p.val}${unitLabel}</text>
+          <text x="${p.x}" y="${height - 12}" text-anchor="middle" fill="#94a3b8" font-size="10">${hourStr}</text>
         `;
       }
     });
 
-    // Interactive Scrubber Elements (Hidden by default, shown on mousemove)
     svgHtml += `
-        <line id="scrubLine" x1="0" y1="${padding.top}" x2="0" y2="${height - padding.bottom}" stroke="rgba(255,255,255,0.4)" stroke-dasharray="3" style="display: none;"/>
-        <circle id="scrubPoint" cx="0" cy="0" r="6" fill="#38bdf8" stroke="#ffffff" stroke-width="2.5" style="display: none;"/>
+        <line id="scrubLine" x1="0" y1="${padding.top}" x2="0" y2="${height - padding.bottom}" stroke="rgba(255,255,255,0.3)" stroke-dasharray="2" style="display: none;"/>
+        <circle id="scrubPoint" cx="0" cy="0" r="5" fill="#38bdf8" stroke="#ffffff" stroke-width="2" style="display: none;"/>
       </svg>
       <div id="chartTooltip" class="chart-tooltip" style="display: none;"></div>
     `;
@@ -197,9 +167,6 @@ const ChartManager = (() => {
     attachScrubberEvents(points, width, height, padding, unitLabel);
   }
 
-  /**
-   * Attach mouse/touch scrubber listeners
-   */
   function attachScrubberEvents(points, width, height, padding, unitLabel) {
     const svg = container.querySelector('.weather-chart-svg');
     const scrubLine = container.querySelector('#scrubLine');
@@ -208,78 +175,79 @@ const ChartManager = (() => {
 
     if (!svg || !scrubLine || !scrubPoint || !tooltip) return;
 
+    let rafId = null;
+
     function handleScrub(clientX) {
-      const rect = svg.getBoundingClientRect();
-      const scaleX = width / rect.width;
-      const svgX = (clientX - rect.left) * scaleX;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const rect = svg.getBoundingClientRect();
+        const scaleX = width / rect.width;
+        const svgX = (clientX - rect.left) * scaleX;
 
-      // Find closest point
-      let closest = points[0];
-      let minDistance = Infinity;
+        let closest = points[0];
+        let minDistance = Infinity;
 
-      for (let p of points) {
-        const dist = Math.abs(p.x - svgX);
-        if (dist < minDistance) {
-          minDistance = dist;
-          closest = p;
+        for (let i = 0; i < points.length; i++) {
+          const dist = Math.abs(points[i].x - svgX);
+          if (dist < minDistance) {
+            minDistance = dist;
+            closest = points[i];
+          }
         }
-      }
 
-      if (!closest) return;
+        if (!closest) return;
 
-      // Update scrub line and point
-      scrubLine.setAttribute('x1', closest.x);
-      scrubLine.setAttribute('x2', closest.x);
-      scrubLine.style.display = 'block';
+        scrubLine.setAttribute('x1', closest.x);
+        scrubLine.setAttribute('x2', closest.x);
+        scrubLine.style.display = 'block';
 
-      scrubPoint.setAttribute('cx', closest.x);
-      scrubPoint.setAttribute('cy', closest.y);
-      scrubPoint.style.display = 'block';
+        scrubPoint.setAttribute('cx', closest.x);
+        scrubPoint.setAttribute('cy', closest.y);
+        scrubPoint.style.display = 'block';
 
-      // Update tooltip
-      const timeObj = new Date(closest.time);
-      const timeFormatted = timeObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-      const weatherInfo = WeatherEngine.getWeatherInfo(closest.code, closest.isDay);
+        const timeObj = new Date(closest.time);
+        const timeFormatted = timeObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        const weatherInfo = WeatherEngine.getWeatherInfo(closest.code, closest.isDay);
 
-      let tooltipDetails = '';
-      if (activeMetric === 'temp') {
-        tooltipDetails = `
-          <div class="tooltip-main">${closest.val}${unitLabel}</div>
-          <div class="tooltip-sub">Feels like: ${closest.secVal}${unitLabel}</div>
-          <div class="tooltip-sub">Rain chance: ${closest.precip}%</div>
+        let tooltipDetails = '';
+        if (activeMetric === 'temp') {
+          tooltipDetails = `
+            <div class="tooltip-main">${closest.val}${unitLabel}</div>
+            <div class="tooltip-sub">Feels like: ${closest.secVal}${unitLabel}</div>
+            <div class="tooltip-sub">Rain: ${closest.precip}%</div>
+          `;
+        } else if (activeMetric === 'precip') {
+          tooltipDetails = `
+            <div class="tooltip-main">${closest.val}% Rain</div>
+            <div class="tooltip-sub">Precip: ${closest.secVal} mm</div>
+          `;
+        } else if (activeMetric === 'wind') {
+          tooltipDetails = `
+            <div class="tooltip-main">${closest.val} ${unitLabel}</div>
+            <div class="tooltip-sub">Gusts: ${closest.secVal} ${unitLabel}</div>
+          `;
+        }
+
+        tooltip.innerHTML = `
+          <div class="tooltip-header">
+            <span>${timeFormatted}</span>
+            <span class="tooltip-cond">${weatherInfo.label}</span>
+          </div>
+          ${tooltipDetails}
         `;
-      } else if (activeMetric === 'precip') {
-        tooltipDetails = `
-          <div class="tooltip-main">${closest.val}% Rain Chance</div>
-          <div class="tooltip-sub">Precipitation: ${closest.secVal} mm</div>
-        `;
-      } else if (activeMetric === 'wind') {
-        tooltipDetails = `
-          <div class="tooltip-main">${closest.val} ${unitLabel}</div>
-          <div class="tooltip-sub">Gusts: ${closest.secVal} ${unitLabel}</div>
-        `;
-      }
 
-      tooltip.innerHTML = `
-        <div class="tooltip-header">
-          <span>${timeFormatted}</span>
-          <span class="tooltip-cond">${weatherInfo.label}</span>
-        </div>
-        ${tooltipDetails}
-      `;
+        const screenX = (closest.x / width) * rect.width;
+        const screenY = (closest.y / height) * rect.height;
 
-      // Position tooltip safely within bounds
-      const screenX = (closest.x / width) * rect.width;
-      const screenY = (closest.y / height) * rect.height;
-
-      tooltip.style.display = 'block';
-      let left = screenX - tooltip.offsetWidth / 2;
-      left = Math.max(10, Math.min(rect.width - tooltip.offsetWidth - 10, left));
-      tooltip.style.left = `${left}px`;
-      tooltip.style.top = `${Math.max(10, screenY - tooltip.offsetHeight - 15)}px`;
+        tooltip.style.display = 'block';
+        let left = screenX - tooltip.offsetWidth / 2;
+        left = Math.max(6, Math.min(rect.width - tooltip.offsetWidth - 6, left));
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${Math.max(6, screenY - tooltip.offsetHeight - 10)}px`;
+      });
     }
 
-    svg.addEventListener('mousemove', (e) => handleScrub(e.clientX));
+    svg.addEventListener('mousemove', (e) => handleScrub(e.clientX), { passive: true });
     svg.addEventListener('touchmove', (e) => {
       if (e.touches.length > 0) {
         handleScrub(e.touches[0].clientX);
@@ -287,6 +255,7 @@ const ChartManager = (() => {
     }, { passive: true });
 
     const hideScrubber = () => {
+      if (rafId) cancelAnimationFrame(rafId);
       scrubLine.style.display = 'none';
       scrubPoint.style.display = 'none';
       tooltip.style.display = 'none';

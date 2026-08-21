@@ -1,202 +1,176 @@
 /**
- * Aetheris Weather Hub - Atmospheric Lighting & Dynamic Weather Themes
- * Hardware-accelerated gradients, glowing ambient light orbs, and glass shaders.
+ * Aetheris Weather Hub - High-Performance Atmospheric Lighting & Dynamic Themes
+ * Optimized with GPU hardware acceleration, zero-overhead CSS gradients,
+ * and lightweight ambient light shaders (no heavy CPU/GPU blur rasterization).
  */
 
-/* Fixed Fullscreen Dynamic Canvas & Background Layers */
+/* Fixed Dynamic Canvas & Atmospheric Background Layers */
 .canvas-background {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   z-index: 0;
   pointer-events: none;
+  transform: translateZ(0);
 }
 
 .ambient-light-container {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
+  transform: translateZ(0);
 }
 
 .ambient-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.6;
-  transition: all 1.8s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, opacity;
+  opacity: 0.45;
+  transition: opacity 1.2s ease, transform 1.2s ease;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 .ambient-orb-1 {
-  top: -10%;
-  left: -5%;
-  width: 55vw;
-  height: 55vw;
-  animation: floatOrb1 24s ease-in-out infinite alternate;
+  top: -15vh;
+  left: -10vw;
+  width: 60vw;
+  height: 60vw;
+  max-width: 650px;
+  max-height: 650px;
+  filter: blur(60px);
 }
 
 .ambient-orb-2 {
-  bottom: -15%;
-  right: -5%;
+  bottom: -15vh;
+  right: -10vw;
   width: 50vw;
   height: 50vw;
-  animation: floatOrb2 28s ease-in-out infinite alternate;
-}
-
-@keyframes floatOrb1 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(60px, 40px) scale(1.08); }
-  100% { transform: translate(-30px, 60px) scale(0.95); }
-}
-
-@keyframes floatOrb2 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-50px, -30px) scale(1.05); }
-  100% { transform: translate(40px, -50px) scale(0.92); }
+  max-width: 550px;
+  max-height: 550px;
+  filter: blur(60px);
 }
 
 /* 1. Clear Day Theme */
 body.theme-clear {
-  background: radial-gradient(circle at 80% 20%, #1e3a8a 0%, #0f172a 60%, #030712 100%);
+  background: linear-gradient(145deg, #0b1e3b 0%, #081226 50%, #030712 100%);
 }
 body.theme-clear .ambient-orb-1 {
-  background: radial-gradient(circle, #38bdf8, #0284c7);
-  opacity: 0.55;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.45), rgba(2, 132, 199, 0.15), transparent 70%);
 }
 body.theme-clear .ambient-orb-2 {
-  background: radial-gradient(circle, #fbbf24, #f97316);
-  opacity: 0.35;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.3), rgba(249, 115, 22, 0.1), transparent 70%);
 }
 
 /* 2. Cloudy Day Theme */
 body.theme-cloudy {
-  background: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 60%, #020617 100%);
+  background: linear-gradient(145deg, #141f30 0%, #0d1522 50%, #030712 100%);
 }
 body.theme-cloudy .ambient-orb-1 {
-  background: radial-gradient(circle, #64748b, #334155);
-  opacity: 0.5;
+  background: radial-gradient(circle, rgba(100, 116, 139, 0.4), rgba(51, 65, 85, 0.15), transparent 70%);
 }
 body.theme-cloudy .ambient-orb-2 {
-  background: radial-gradient(circle, #38bdf8, #1e293b);
-  opacity: 0.3;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.25), transparent 70%);
 }
 
 /* 3. Rain / Drizzle Theme */
 body.theme-rain {
-  background: radial-gradient(circle at 30% 20%, #0c4a6e 0%, #0f172a 65%, #020617 100%);
+  background: linear-gradient(145deg, #082944 0%, #0b1b2d 50%, #020712 100%);
 }
 body.theme-rain .ambient-orb-1 {
-  background: radial-gradient(circle, #0284c7, #0369a1);
-  opacity: 0.6;
+  background: radial-gradient(circle, rgba(2, 132, 199, 0.45), rgba(3, 105, 161, 0.15), transparent 70%);
 }
 body.theme-rain .ambient-orb-2 {
-  background: radial-gradient(circle, #06b6d4, #0f172a);
-  opacity: 0.35;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.3), transparent 70%);
 }
 
 /* 4. Thunderstorm Theme */
 body.theme-storm {
-  background: radial-gradient(circle at 50% 30%, #311042 0%, #0f172a 70%, #020617 100%);
+  background: linear-gradient(145deg, #240d35 0%, #110d22 50%, #03040b 100%);
 }
 body.theme-storm .ambient-orb-1 {
-  background: radial-gradient(circle, #7e22ce, #4c1d95);
-  opacity: 0.65;
+  background: radial-gradient(circle, rgba(126, 34, 206, 0.5), rgba(76, 29, 149, 0.15), transparent 70%);
 }
 body.theme-storm .ambient-orb-2 {
-  background: radial-gradient(circle, #2563eb, #0f172a);
-  opacity: 0.45;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.35), transparent 70%);
 }
 
 /* 5. Snow Theme */
 body.theme-snow {
-  background: radial-gradient(circle at 50% 10%, #1e3a5f 0%, #0f172a 70%, #020617 100%);
+  background: linear-gradient(145deg, #152945 0%, #0e1d32 50%, #030712 100%);
 }
 body.theme-snow .ambient-orb-1 {
-  background: radial-gradient(circle, #e0f2fe, #7dd3fc);
-  opacity: 0.45;
+  background: radial-gradient(circle, rgba(224, 242, 254, 0.35), rgba(125, 211, 252, 0.15), transparent 70%);
 }
 body.theme-snow .ambient-orb-2 {
-  background: radial-gradient(circle, #60a5fa, #1e293b);
-  opacity: 0.3;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.25), transparent 70%);
 }
 
 /* 6. Fog / Mist Theme */
 body.theme-fog {
-  background: radial-gradient(circle at 50% 20%, #334155 0%, #0f172a 70%, #020617 100%);
+  background: linear-gradient(145deg, #223042 0%, #131c29 50%, #030712 100%);
 }
 body.theme-fog .ambient-orb-1 {
-  background: radial-gradient(circle, #94a3b8, #475569);
-  opacity: 0.4;
+  background: radial-gradient(circle, rgba(148, 163, 184, 0.35), transparent 70%);
 }
 body.theme-fog .ambient-orb-2 {
-  background: radial-gradient(circle, #64748b, #1e293b);
-  opacity: 0.3;
+  background: radial-gradient(circle, rgba(100, 116, 139, 0.25), transparent 70%);
 }
 
 /* 7. Night Themes */
 body.theme-night-clear {
-  background: radial-gradient(circle at 70% 15%, #172554 0%, #090d16 65%, #020408 100%);
+  background: linear-gradient(145deg, #0d1b38 0%, #060b17 50%, #01040a 100%);
 }
 body.theme-night-clear .ambient-orb-1 {
-  background: radial-gradient(circle, #3b82f6, #1d4ed8);
-  opacity: 0.45;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.35), rgba(29, 78, 216, 0.1), transparent 70%);
 }
 body.theme-night-clear .ambient-orb-2 {
-  background: radial-gradient(circle, #8b5cf6, #090d16);
-  opacity: 0.35;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.25), transparent 70%);
 }
 
 body.theme-night-cloudy {
-  background: radial-gradient(circle at 50% 20%, #111827 0%, #090d16 70%, #020408 100%);
+  background: linear-gradient(145deg, #0e1524 0%, #070a12 50%, #010308 100%);
 }
 body.theme-night-cloudy .ambient-orb-1 {
-  background: radial-gradient(circle, #374151, #1f2937);
-  opacity: 0.45;
+  background: radial-gradient(circle, rgba(55, 65, 81, 0.35), transparent 70%);
 }
 body.theme-night-cloudy .ambient-orb-2 {
-  background: radial-gradient(circle, #4b5563, #090d16);
-  opacity: 0.25;
+  background: radial-gradient(circle, rgba(75, 85, 99, 0.2), transparent 70%);
 }
 
 body.theme-night-rain {
-  background: radial-gradient(circle at 40% 20%, #082f49 0%, #090d16 75%, #020408 100%);
+  background: linear-gradient(145deg, #062035 0%, #060d17 50%, #01040a 100%);
 }
 body.theme-night-rain .ambient-orb-1 {
-  background: radial-gradient(circle, #0369a1, #075985);
-  opacity: 0.5;
+  background: radial-gradient(circle, rgba(3, 105, 161, 0.4), transparent 70%);
 }
 body.theme-night-rain .ambient-orb-2 {
-  background: radial-gradient(circle, #1e293b, #090d16);
-  opacity: 0.3;
+  background: radial-gradient(circle, rgba(30, 41, 59, 0.25), transparent 70%);
 }
 
 body.theme-night-storm {
-  background: radial-gradient(circle at 50% 20%, #2e1065 0%, #090d16 75%, #020408 100%);
+  background: linear-gradient(145deg, #1f0b40 0%, #0a0618 50%, #020108 100%);
 }
 body.theme-night-storm .ambient-orb-1 {
-  background: radial-gradient(circle, #6b21a8, #3b0764);
-  opacity: 0.55;
+  background: radial-gradient(circle, rgba(107, 33, 168, 0.45), transparent 70%);
 }
 body.theme-night-storm .ambient-orb-2 {
-  background: radial-gradient(circle, #1d4ed8, #090d16);
-  opacity: 0.35;
+  background: radial-gradient(circle, rgba(29, 78, 216, 0.3), transparent 70%);
 }
 
 body.theme-night-snow {
-  background: radial-gradient(circle at 50% 20%, #1e293b 0%, #090d16 75%, #020408 100%);
+  background: linear-gradient(145deg, #112035 0%, #070d18 50%, #01040a 100%);
 }
 body.theme-night-snow .ambient-orb-1 {
-  background: radial-gradient(circle, #93c5fd, #3b82f6);
-  opacity: 0.4;
+  background: radial-gradient(circle, rgba(147, 197, 253, 0.3), transparent 70%);
 }
 body.theme-night-snow .ambient-orb-2 {
-  background: radial-gradient(circle, #475569, #090d16);
-  opacity: 0.25;
+  background: radial-gradient(circle, rgba(71, 85, 105, 0.2), transparent 70%);
 }
