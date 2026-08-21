@@ -1,0 +1,202 @@
+/**
+ * Aetheris Weather Hub - Atmospheric Lighting & Dynamic Weather Themes
+ * Hardware-accelerated gradients, glowing ambient light orbs, and glass shaders.
+ */
+
+/* Fixed Fullscreen Dynamic Canvas & Background Layers */
+.canvas-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.ambient-light-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.6;
+  transition: all 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.ambient-orb-1 {
+  top: -10%;
+  left: -5%;
+  width: 55vw;
+  height: 55vw;
+  animation: floatOrb1 24s ease-in-out infinite alternate;
+}
+
+.ambient-orb-2 {
+  bottom: -15%;
+  right: -5%;
+  width: 50vw;
+  height: 50vw;
+  animation: floatOrb2 28s ease-in-out infinite alternate;
+}
+
+@keyframes floatOrb1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(60px, 40px) scale(1.08); }
+  100% { transform: translate(-30px, 60px) scale(0.95); }
+}
+
+@keyframes floatOrb2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-50px, -30px) scale(1.05); }
+  100% { transform: translate(40px, -50px) scale(0.92); }
+}
+
+/* 1. Clear Day Theme */
+body.theme-clear {
+  background: radial-gradient(circle at 80% 20%, #1e3a8a 0%, #0f172a 60%, #030712 100%);
+}
+body.theme-clear .ambient-orb-1 {
+  background: radial-gradient(circle, #38bdf8, #0284c7);
+  opacity: 0.55;
+}
+body.theme-clear .ambient-orb-2 {
+  background: radial-gradient(circle, #fbbf24, #f97316);
+  opacity: 0.35;
+}
+
+/* 2. Cloudy Day Theme */
+body.theme-cloudy {
+  background: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 60%, #020617 100%);
+}
+body.theme-cloudy .ambient-orb-1 {
+  background: radial-gradient(circle, #64748b, #334155);
+  opacity: 0.5;
+}
+body.theme-cloudy .ambient-orb-2 {
+  background: radial-gradient(circle, #38bdf8, #1e293b);
+  opacity: 0.3;
+}
+
+/* 3. Rain / Drizzle Theme */
+body.theme-rain {
+  background: radial-gradient(circle at 30% 20%, #0c4a6e 0%, #0f172a 65%, #020617 100%);
+}
+body.theme-rain .ambient-orb-1 {
+  background: radial-gradient(circle, #0284c7, #0369a1);
+  opacity: 0.6;
+}
+body.theme-rain .ambient-orb-2 {
+  background: radial-gradient(circle, #06b6d4, #0f172a);
+  opacity: 0.35;
+}
+
+/* 4. Thunderstorm Theme */
+body.theme-storm {
+  background: radial-gradient(circle at 50% 30%, #311042 0%, #0f172a 70%, #020617 100%);
+}
+body.theme-storm .ambient-orb-1 {
+  background: radial-gradient(circle, #7e22ce, #4c1d95);
+  opacity: 0.65;
+}
+body.theme-storm .ambient-orb-2 {
+  background: radial-gradient(circle, #2563eb, #0f172a);
+  opacity: 0.45;
+}
+
+/* 5. Snow Theme */
+body.theme-snow {
+  background: radial-gradient(circle at 50% 10%, #1e3a5f 0%, #0f172a 70%, #020617 100%);
+}
+body.theme-snow .ambient-orb-1 {
+  background: radial-gradient(circle, #e0f2fe, #7dd3fc);
+  opacity: 0.45;
+}
+body.theme-snow .ambient-orb-2 {
+  background: radial-gradient(circle, #60a5fa, #1e293b);
+  opacity: 0.3;
+}
+
+/* 6. Fog / Mist Theme */
+body.theme-fog {
+  background: radial-gradient(circle at 50% 20%, #334155 0%, #0f172a 70%, #020617 100%);
+}
+body.theme-fog .ambient-orb-1 {
+  background: radial-gradient(circle, #94a3b8, #475569);
+  opacity: 0.4;
+}
+body.theme-fog .ambient-orb-2 {
+  background: radial-gradient(circle, #64748b, #1e293b);
+  opacity: 0.3;
+}
+
+/* 7. Night Themes */
+body.theme-night-clear {
+  background: radial-gradient(circle at 70% 15%, #172554 0%, #090d16 65%, #020408 100%);
+}
+body.theme-night-clear .ambient-orb-1 {
+  background: radial-gradient(circle, #3b82f6, #1d4ed8);
+  opacity: 0.45;
+}
+body.theme-night-clear .ambient-orb-2 {
+  background: radial-gradient(circle, #8b5cf6, #090d16);
+  opacity: 0.35;
+}
+
+body.theme-night-cloudy {
+  background: radial-gradient(circle at 50% 20%, #111827 0%, #090d16 70%, #020408 100%);
+}
+body.theme-night-cloudy .ambient-orb-1 {
+  background: radial-gradient(circle, #374151, #1f2937);
+  opacity: 0.45;
+}
+body.theme-night-cloudy .ambient-orb-2 {
+  background: radial-gradient(circle, #4b5563, #090d16);
+  opacity: 0.25;
+}
+
+body.theme-night-rain {
+  background: radial-gradient(circle at 40% 20%, #082f49 0%, #090d16 75%, #020408 100%);
+}
+body.theme-night-rain .ambient-orb-1 {
+  background: radial-gradient(circle, #0369a1, #075985);
+  opacity: 0.5;
+}
+body.theme-night-rain .ambient-orb-2 {
+  background: radial-gradient(circle, #1e293b, #090d16);
+  opacity: 0.3;
+}
+
+body.theme-night-storm {
+  background: radial-gradient(circle at 50% 20%, #2e1065 0%, #090d16 75%, #020408 100%);
+}
+body.theme-night-storm .ambient-orb-1 {
+  background: radial-gradient(circle, #6b21a8, #3b0764);
+  opacity: 0.55;
+}
+body.theme-night-storm .ambient-orb-2 {
+  background: radial-gradient(circle, #1d4ed8, #090d16);
+  opacity: 0.35;
+}
+
+body.theme-night-snow {
+  background: radial-gradient(circle at 50% 20%, #1e293b 0%, #090d16 75%, #020408 100%);
+}
+body.theme-night-snow .ambient-orb-1 {
+  background: radial-gradient(circle, #93c5fd, #3b82f6);
+  opacity: 0.4;
+}
+body.theme-night-snow .ambient-orb-2 {
+  background: radial-gradient(circle, #475569, #090d16);
+  opacity: 0.25;
+}

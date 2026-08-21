@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="Aetheris - Next-Generation Atmospheric Intelligence & Ultimate Weather Hub powered by Open-Meteo API suite.">
+  <meta name="theme-color" content="#030712">
+  <title>Aetheris // Ultimate Weather Hub</title>
+  
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/weather-effects.css">
+</head>
+<body class="theme-clear">
+  <!-- Dynamic Atmospheric Canvas & Lighting Backdrops -->
+  <div class="ambient-light-container">
+    <div class="ambient-orb ambient-orb-1"></div>
+    <div class="ambient-orb ambient-orb-2"></div>
+  </div>
+  <canvas id="weatherCanvas" class="canvas-background"></canvas>
+
+  <!-- Main Application Wrapper -->
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand-section">
+        <div class="brand-logo-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="brand-logo-svg" style="color: #38bdf8;">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2"/>
+            <path d="M12 20v2"/>
+            <path d="m4.93 4.93 1.41 1.41"/>
+            <path d="m17.66 17.66 1.41 1.41"/>
+            <path d="M2 12h2"/>
+            <path d="M20 12h2"/>
+          </svg>
+        </div>
+        <div class="brand-text-col">
+          <h1 class="brand-title">AETHERIS</h1>
+          <span class="brand-subtitle">Atmospheric Intelligence Hub</span>
+        </div>
+      </div>
+
+      <!-- Search Box with Autocomplete -->
+      <div class="search-form-wrap">
+        <div class="search-input-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon-svg">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="citySearchInput" class="search-input" placeholder="Search city or coordinates..." autocomplete="off">
+          <span class="kbd-shortcut" title="Press '/' to search">/</span>
+        </div>
+        <div id="searchResultsDropdown" class="search-dropdown"></div>
+      </div>
+
+      <!-- Controls: Geolocation, Units, Refresh -->
+      <div class="header-actions">
+        <button id="geoLocateBtn" class="action-btn" type="button" title="Detect Current GPS Location (L)">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+          <span>Locate</span>
+        </button>
+        <button id="unitToggleBtn" class="action-btn" type="button" title="Toggle Units (U)">°C / km/h</button>
+        <button id="refreshBtn" class="action-btn icon-only" type="button" title="Refresh Live Data">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Favorites Horizontal Tray -->
+    <section class="favorites-section">
+      <div id="favoritesTray" class="favorites-bar"></div>
+    </section>
+
+    <!-- Skeleton Loading Placeholder -->
+    <div id="skeletonPlaceholder" style="display: none;">
+      <div class="dashboard-grid">
+        <div class="glass-card skeleton-box" style="height: 480px;"></div>
+        <div class="main-center-col">
+          <div class="glass-card skeleton-box" style="height: 260px;"></div>
+          <div class="metrics-grid">
+            <div class="glass-card skeleton-box" style="height: 120px;"></div>
+            <div class="glass-card skeleton-box" style="height: 120px;"></div>
+            <div class="glass-card skeleton-box" style="height: 120px;"></div>
+            <div class="glass-card skeleton-box" style="height: 120px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Weather Dashboard -->
+    <main id="dashboardContent" class="dashboard-grid">
+      <!-- Left Column: Hero Current Weather & 7-Day Synoptic Forecast -->
+      <aside class="sidebar-col" style="display: flex; flex-direction: column; gap: 24px;">
+        <!-- Hero Card -->
+        <div class="glass-card hero-card">
+          <div class="hero-header">
+            <div>
+              <h2 id="heroLocation" class="hero-location-name">--</h2>
+              <div id="heroLocationSub" class="hero-location-sub">--</div>
+              <div id="heroClock" class="hero-clock">--:--:--</div>
+            </div>
+            <button id="heroFavBtn" class="fav-toggle-btn" type="button" title="Add to favorites (F)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="hero-main-weather">
+            <div id="heroTemp" class="hero-temp-display">--°</div>
+            <div id="heroIcon" class="hero-icon-large"></div>
+          </div>
+
+          <div class="hero-condition-row">
+            <div id="heroWeatherDesc" class="hero-weather-desc">Loading...</div>
+            <div id="heroTempRange" class="hero-temp-range">--</div>
+          </div>
+        </div>
+
+        <!-- 7-Day Synoptic Forecast Card -->
+        <div class="glass-card">
+          <div class="card-title-row">
+            <h3 class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-title-icon"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              7-Day Synoptic Forecast
+            </h3>
+          </div>
+          <div id="dailyForecastContainer" class="daily-forecast-container"></div>
+        </div>
+      </aside>
+
+      <!-- Right Column: Hourly Chart, Deep Metrics, Ephemeris, Lifestyle -->
+      <section class="main-center-col">
+        <!-- 24-Hour Hourly Chart Card -->
+        <div class="glass-card chart-section">
+          <div class="chart-header">
+            <h3 class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-title-icon"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              24-Hour Precision Dynamics
+            </h3>
+            <div class="chart-tabs-wrap">
+              <button class="chart-tab-btn active" data-metric="temp" type="button">Temperature</button>
+              <button class="chart-tab-btn" data-metric="precip" type="button">Precipitation</button>
+              <button class="chart-tab-btn" data-metric="wind" type="button">Wind</button>
+            </div>
+          </div>
+          <div id="hourlyChartContainer" class="chart-container-wrap"></div>
+        </div>
+
+        <!-- Atmospheric Deep Metrics (8 Pro Cards) -->
+        <div class="metrics-grid">
+          <!-- 1. UV Index -->
+          <div class="glass-card metric-card">
+            <div class="metric-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+              <span>UV Radiation</span>
+            </div>
+            <div id="metricUv"></div>
+          </div>
+
+          <!-- 2. Wind Vector -->
+          <div class="glass-card metric-card">
+            <div class="metric-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+              <span>Wind Dynamics</span>
+            </div>
+            <div id="metricWind"></div>
+          </div>
+
+          <!-- 3. Humidity & Dew Point -->
+          <div class="glass-card metric-card">
+            <div class="metric-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              <span>Humidity & Dew</span>
+            </div>
+            <div id="metricHumidity"></div>
+          </div>
+
+          <!-- 4. Air Quality Index (AQI) -->
+          <div class="glass-card metric-card">
+            <div class="metric-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>
+              <span>Air Quality (US AQI)</span>
+            </div>
+            <div id="metricAqi"></div>
+          </div>
+
+          <!-- 5. Barometric Pressure -->
+          <div class="glass-card metric-card">
+            <div class="metric-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><path d="M2 12h20"/></svg>
+              <span>Barometric Pressure</span>
+            </div>
+            <div id="metricPressure"></div>
+          </div>
+
+          <!-- 6. Visibility -->
+          <div class="glass-card metric-card">
+            <div class="metric-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Visibility Range</span>
+            </div>
+            <div id="metricVisibility"></div>
+          </div>
+
+          <!-- 7. Cloud Cover -->
+          <div class="glass-card metric-card">
+            <div class="metric-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a5 5 0 0 1-5-5c0-2.5 1.8-4.6 4.2-4.9A6 6 0 0 1 19 11.2a4 4 0 0 1-1.5 7.8z"/></svg>
+              <span>Cloud Cover</span>
+            </div>
+            <div id="metricCloud"></div>
+          </div>
+
+          <!-- 8. Precipitation Probability -->
+          <div class="glass-card metric-card">
+            <div class="metric-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m9.2 18-1.4 3"/><path d="m14.2 18-1.4 3"/></svg>
+              <span>Precipitation</span>
+            </div>
+            <div id="metricPrecip"></div>
+          </div>
+        </div>
+
+        <!-- Solar Ephemeris & Moon Phase Widget -->
+        <div class="glass-card">
+          <div class="card-title-row">
+            <h3 class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-title-icon"><circle cx="12" cy="12" r="10"/><path d="M12 2a7 7 0 1 0 10 10"/></svg>
+              Celestial & Solar Ephemeris
+            </h3>
+          </div>
+          <div id="ephemerisWidget"></div>
+        </div>
+
+        <!-- Lifestyle & Activity Intelligence -->
+        <div class="glass-card">
+          <div class="card-title-row">
+            <h3 class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-title-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Atmospheric Lifestyle & Safety Advisory
+            </h3>
+          </div>
+          <div id="lifestyleWidget"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast Element -->
+  <div id="appToast" class="app-toast"></div>
+
+  <!-- Application Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/weatherEngine.js"></script>
+  <script src="js/canvasEffects.js"></script>
+  <script src="js/chartManager.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
