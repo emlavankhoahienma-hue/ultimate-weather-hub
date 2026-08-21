@@ -1,10 +1,9 @@
 /**
  * Aetheris Weather Hub - Main Application Orchestrator
- * Connects API, State, Canvas Effects, Chart Engine, and UI Rendering.
+ * Connects Multi-Provider API, Localization (i18n), State, Chart Engine, and Settings Modal.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Application State
   const state = {
     location: null,
     weatherData: null,
@@ -21,16 +20,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchDropdown = document.getElementById('searchResultsDropdown');
   const geoBtn = document.getElementById('geoLocateBtn');
   const unitToggleBtn = document.getElementById('unitToggleBtn');
+  const langToggleBtn = document.getElementById('langToggleBtn');
+  const settingsBtn = document.getElementById('settingsBtn');
   const heroFavBtn = document.getElementById('heroFavBtn');
   const chartContainer = document.getElementById('hourlyChartContainer');
   const chartTabs = document.querySelectorAll('.chart-tab-btn');
   const refreshBtn = document.getElementById('refreshBtn');
 
-  /**
-   * Initialize Core Modules
-   */
+  // Settings Modal Elements
+  const settingsModal = document.getElementById('settingsModal');
+  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+  const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+  const providerSelect = document.getElementById('providerSelect');
+  const weatherApiKeyInput = document.getElementById('weatherApiKeyInput');
+  const openWeatherKeyInput = document.getElementById('openWeatherKeyInput');
+  const waqiTokenInput = document.getElementById('waqiTokenInput');
+
   function initApp() {
-    // 1. Initialize Canvas Particle Engine
+    // 1. Initialize Canvas Engine
     if (canvasBg) {
       CanvasEffects.init(canvasBg);
     }
@@ -40,33 +47,31 @@ document.addEventListener('DOMContentLoaded', () => {
       ChartManager.init(chartContainer);
     }
 
-    // 3. Update Unit toggle UI
+    // 3. Update Static Localization Labels
+    UIManager.updateStaticLabels();
     updateUnitButton();
 
     // 4. Attach Event Listeners
     setupEventListeners();
 
-    // 5. Render Initial Favorites Tray
+    // 5. Render Favorites
     renderFavorites();
 
-    // 6. Load Initial Location (Saved last location or default Hanoi)
+    // 6. Load Initial Location
     const initialLocation = StorageManager.getLastLocation();
     loadLocation(initialLocation);
 
-    // 7. Auto refresh weather every 10 minutes
+    // 7. Auto refresh weather every 10 mins
     state.refreshInterval = setInterval(() => {
       if (state.location) {
         loadLocation(state.location, false);
       }
     }, 10 * 60 * 1000);
 
-    // 8. Local Clock updates every second
+    // 8. Live Clock
     state.clockInterval = setInterval(updateLiveClock, 1000);
   }
 
-  /**
-   * Load weather and air quality data for a location
-   */
   async function loadLocation(location, showLoading = true) {
     if (!location || !location.latitude || !location.longitude) return;
 
@@ -78,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
       state.location = location;
       StorageManager.setLastLocation(location);
 
-      // Fetch Weather and Air Quality concurrently
       const [weatherData, aqiData] = await Promise.all([
         ApiService.fetchWeatherData(location.latitude, location.longitude, location.timezone),
         ApiService.fetchAirQuality(location.latitude, location.longitude, location.timezone)
@@ -87,22 +91,11 @@ document.addEventListener('DOMContentLoaded', () => {
       state.weatherData = weatherData;
       state.aqiData = aqiData;
 
-      // Update Body Theme & Canvas Particle Engine
       const current = weatherData.current;
       const weatherInfo = WeatherEngine.getWeatherInfo(current.weather_code, current.is_day);
       applyTheme(weatherInfo.themeCategory);
 
-      // Render all UI components
-      UIManager.renderHero(location, weatherData, state.unit);
-      UIManager.renderMetrics(weatherData, aqiData, state.unit);
-      UIManager.renderEphemeris(weatherData);
-      UIManager.renderDailyForecast(weatherData, state.unit);
-      UIManager.renderLifestyle(weatherData, aqiData);
-
-      // Render Chart
-      if (weatherData.hourly) {
-        ChartManager.update(weatherData.hourly, state.unit);
-      }
+      renderAllComponents();
 
       if (showLoading) {
         UIManager.setLoadingState(false);
@@ -110,69 +103,67 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       console.error('[App] Failed to load location data:', error);
       UIManager.setLoadingState(false);
-      UIManager.showToast('Failed to fetch meteorological data. Please retry.', 'error');
+      UIManager.showToast(I18n.getLang() === 'vi' ? 'Không thể tải dữ liệu thời tiết. Vui lòng thử lại.' : 'Failed to fetch weather data.', 'error');
     }
   }
 
-  /**
-   * Apply dynamic background theme & particle effect
-   */
+  function renderAllComponents() {
+    if (!state.location || !state.weatherData) return;
+    UIManager.updateStaticLabels();
+    UIManager.renderHero(state.location, state.weatherData, state.unit);
+    UIManager.renderMetrics(state.weatherData, state.aqiData, state.unit);
+    UIManager.renderEphemeris(state.weatherData);
+    UIManager.renderDailyForecast(state.weatherData, state.unit);
+    UIManager.renderLifestyle(state.weatherData, state.aqiData);
+
+    if (state.weatherData.hourly) {
+      ChartManager.update(state.weatherData.hourly, state.unit);
+    }
+  }
+
   function applyTheme(themeCategory) {
     document.body.className = `theme-${themeCategory}`;
     CanvasEffects.setTheme(themeCategory);
   }
 
-  /**
-   * Update Live Clock in Hero section
-   */
   function updateLiveClock() {
     const heroClock = document.getElementById('heroClock');
     if (!heroClock || !state.location) return;
 
     try {
-      const timeStr = new Date().toLocaleTimeString('en-US', {
+      const timeStr = new Date().toLocaleTimeString(I18n.getLang() === 'vi' ? 'vi-VN' : 'en-US', {
         timeZone: state.location.timezone !== 'auto' ? state.location.timezone : undefined,
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
         hour12: false
       });
-      heroClock.textContent = `${timeStr} (Local)`;
+      heroClock.textContent = `${timeStr} (${I18n.t('localTime')})`;
     } catch (e) {
       heroClock.textContent = '';
     }
   }
 
-  /**
-   * Update Unit Switcher Button State
-   */
   function updateUnitButton() {
     if (!unitToggleBtn) return;
     unitToggleBtn.textContent = state.unit === 'metric' ? '°C / km/h' : '°F / mph';
   }
 
-  /**
-   * Toggle between Metric and Imperial
-   */
   function toggleUnits() {
     state.unit = state.unit === 'metric' ? 'imperial' : 'metric';
     StorageManager.setUnit(state.unit);
     updateUnitButton();
-
-    if (state.weatherData && state.location) {
-      UIManager.renderHero(state.location, state.weatherData, state.unit);
-      UIManager.renderMetrics(state.weatherData, state.aqiData, state.unit);
-      UIManager.renderDailyForecast(state.weatherData, state.unit);
-      if (state.weatherData.hourly) {
-        ChartManager.update(state.weatherData.hourly, state.unit);
-      }
-    }
-    UIManager.showToast(`Switched units to ${state.unit.toUpperCase()}`, 'info');
+    renderAllComponents();
+    UIManager.showToast(I18n.getLang() === 'vi' ? `Đã chuyển sang hệ ${state.unit.toUpperCase()}` : `Switched units to ${state.unit.toUpperCase()}`, 'info');
   }
 
-  /**
-   * Render Favorites Tray with handlers
-   */
+  function toggleLanguage() {
+    const newLang = I18n.toggleLang();
+    renderAllComponents();
+    renderFavorites();
+    UIManager.showToast(newLang === 'vi' ? 'Đã đổi sang Tiếng Việt' : 'Switched to English', 'success');
+  }
+
   function renderFavorites() {
     UIManager.renderFavoritesTray(
       (selectedLoc) => {
@@ -185,14 +176,11 @@ document.addEventListener('DOMContentLoaded', () => {
           const isFav = StorageManager.isFavorite(state.location.latitude, state.location.longitude);
           if (heroFavBtn) heroFavBtn.classList.toggle('active', isFav);
         }
-        UIManager.showToast('Location removed from favorites', 'info');
+        UIManager.showToast(I18n.getLang() === 'vi' ? 'Đã xóa khỏi yêu thích' : 'Removed from favorites', 'info');
       }
     );
   }
 
-  /**
-   * Toggle Favorite for currently viewed city
-   */
   function toggleCurrentFavorite() {
     if (!state.location) return;
     const isFav = StorageManager.isFavorite(state.location.latitude, state.location.longitude);
@@ -200,25 +188,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isFav) {
       StorageManager.removeFavorite(state.location.id);
       if (heroFavBtn) heroFavBtn.classList.remove('active');
-      UIManager.showToast(`Removed ${state.location.name} from favorites`, 'info');
+      UIManager.showToast(I18n.getLang() === 'vi' ? `Đã bỏ lưu ${state.location.name}` : `Removed ${state.location.name}`, 'info');
     } else {
       StorageManager.addFavorite(state.location);
       if (heroFavBtn) heroFavBtn.classList.add('active');
-      UIManager.showToast(`Saved ${state.location.name} to favorites`, 'success');
+      UIManager.showToast(I18n.getLang() === 'vi' ? `Đã ghim ${state.location.name} vào yêu thích` : `Saved ${state.location.name} to favorites`, 'success');
     }
     renderFavorites();
   }
 
-  /**
-   * Detect Geolocation via browser
-   */
   function detectCurrentLocation() {
     if (!navigator.geolocation) {
-      UIManager.showToast('Geolocation is not supported by your browser.', 'error');
+      UIManager.showToast(I18n.getLang() === 'vi' ? 'Trình duyệt không hỗ trợ định vị GPS.' : 'Geolocation not supported.', 'error');
       return;
     }
 
-    UIManager.showToast('Locating coordinates...', 'info');
+    UIManager.showToast(I18n.getLang() === 'vi' ? 'Đang định vị tọa độ của bạn...' : 'Locating coordinates...', 'info');
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -226,11 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const locDetails = await ApiService.reverseGeocode(latitude, longitude);
           loadLocation(locDetails);
-          UIManager.showToast(`Detected location: ${locDetails.name}`, 'success');
+          UIManager.showToast(I18n.getLang() === 'vi' ? `Vị trí: ${locDetails.name}` : `Located: ${locDetails.name}`, 'success');
         } catch (e) {
           loadLocation({
             id: `${latitude.toFixed(4)}_${longitude.toFixed(4)}`,
-            name: 'My Location',
+            name: I18n.getLang() === 'vi' ? 'Vị trí hiện tại' : 'My Location',
             admin1: '',
             country: '',
             latitude,
@@ -241,15 +226,12 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       (err) => {
         console.warn('[App] Geolocation error:', err);
-        UIManager.showToast('Location permission denied or unavailable.', 'error');
+        UIManager.showToast(I18n.getLang() === 'vi' ? 'Không thể lấy quyền định vị GPS.' : 'Location permission denied.', 'error');
       },
-      { timeout: 10000, enableHighAccuracy: true }
+      { timeout: 8000, enableHighAccuracy: true }
     );
   }
 
-  /**
-   * Handle Search Input with 300ms Debounce
-   */
   function handleSearchInput(e) {
     const query = e.target.value.trim();
     clearTimeout(state.searchDebounceTimer);
@@ -269,9 +251,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 300);
   }
 
-  /**
-   * Setup Event Listeners
-   */
+  // Open Settings Modal
+  function openSettings() {
+    if (!settingsModal) return;
+    const provider = StorageManager.getProvider();
+    const keys = StorageManager.getApiKeys();
+
+    if (providerSelect) providerSelect.value = provider;
+    if (weatherApiKeyInput) weatherApiKeyInput.value = keys.weatherapi || '';
+    if (openWeatherKeyInput) openWeatherKeyInput.value = keys.openweathermap || '';
+    if (waqiTokenInput) waqiTokenInput.value = keys.waqi || '';
+
+    settingsModal.style.display = 'flex';
+  }
+
+  function closeSettings() {
+    if (settingsModal) settingsModal.style.display = 'none';
+  }
+
+  function saveSettings() {
+    const provider = providerSelect.value;
+    const keys = {
+      weatherapi: (weatherApiKeyInput.value || '').trim(),
+      openweathermap: (openWeatherKeyInput.value || '').trim(),
+      waqi: (waqiTokenInput.value || '').trim()
+    };
+
+    StorageManager.setProvider(provider);
+    StorageManager.setApiKeys(keys);
+    ApiService.clearCache();
+
+    closeSettings();
+    UIManager.showToast(I18n.t('keySavedToast'), 'success');
+
+    if (state.location) {
+      loadLocation(state.location, true);
+    }
+  }
+
   function setupEventListeners() {
     // 1. Search Bar
     if (searchInput) {
@@ -283,40 +300,33 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Close search dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (searchDropdown && !searchDropdown.contains(e.target) && e.target !== searchInput) {
         searchDropdown.style.display = 'none';
       }
     });
 
-    // 2. Geolocation Button
-    if (geoBtn) {
-      geoBtn.addEventListener('click', detectCurrentLocation);
-    }
+    // 2. Action Buttons
+    if (geoBtn) geoBtn.addEventListener('click', detectCurrentLocation);
+    if (unitToggleBtn) unitToggleBtn.addEventListener('click', toggleUnits);
+    if (langToggleBtn) langToggleBtn.addEventListener('click', toggleLanguage);
+    if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+    if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', closeSettings);
+    if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', saveSettings);
 
-    // 3. Unit Switcher
-    if (unitToggleBtn) {
-      unitToggleBtn.addEventListener('click', toggleUnits);
-    }
+    if (heroFavBtn) heroFavBtn.addEventListener('click', toggleCurrentFavorite);
 
-    // 4. Hero Favorite Button
-    if (heroFavBtn) {
-      heroFavBtn.addEventListener('click', toggleCurrentFavorite);
-    }
-
-    // 5. Refresh Button
     if (refreshBtn) {
       refreshBtn.addEventListener('click', () => {
         if (state.location) {
           ApiService.clearCache();
           loadLocation(state.location, true);
-          UIManager.showToast('Updated weather data', 'info');
+          UIManager.showToast(I18n.getLang() === 'vi' ? 'Đã làm mới dữ liệu' : 'Refreshed weather data', 'info');
         }
       });
     }
 
-    // 6. Chart Metric Tabs
+    // 3. Chart Metric Tabs
     chartTabs.forEach(tab => {
       tab.addEventListener('click', () => {
         chartTabs.forEach(t => t.classList.remove('active'));
@@ -326,13 +336,13 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // 7. Global Keyboard Shortcuts
+    // 4. Global Keyboard Shortcuts
     document.addEventListener('keydown', (e) => {
-      // Ignore if user is actively typing inside an input
-      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-        if (e.key === 'Escape' && searchDropdown) {
-          searchDropdown.style.display = 'none';
-          searchInput.blur();
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+        if (e.key === 'Escape') {
+          if (searchDropdown) searchDropdown.style.display = 'none';
+          if (settingsModal) closeSettings();
+          if (searchInput) searchInput.blur();
         }
         return;
       }
@@ -353,6 +363,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Run initialization
   initApp();
 });

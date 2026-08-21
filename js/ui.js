@@ -1,11 +1,10 @@
 /**
  * Aetheris Weather Hub - UI Rendering & Component Engine
- * Renders Glassmorphic widgets, Ephemeris Sun Arc, AQI Gauges,
- * 7-Day Forecast bars, Lifestyle ratings, and Skeleton Loaders.
+ * Bilingual (Vietnamese & English) localized widgets, Ephemeris Sun Arc,
+ * AQI Gauges, 7-Day Forecast, Settings Modal, and Notifications.
  */
 
 const UIManager = (() => {
-  // SVG Icon definitions
   const ICONS = {
     'sun': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-icon"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`,
     'sun-cloud': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-icon"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.5 8.5A5.5 5.5 0 0 0 5 13a4.5 4.5 0 0 0 4.5 4.5h8.5a4 4 0 0 0 4-4 4.5 4.5 0 0 0-6.5-5z"/></svg>`,
@@ -20,19 +19,29 @@ const UIManager = (() => {
     'snow-light': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-icon"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 19h.01"/><path d="M12 19h.01"/><path d="M16 19h.01"/></svg>`,
     'snow-medium': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-icon"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/><path d="M10 21h.01"/><path d="M14 21h.01"/></svg>`,
     'snow-heavy': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-icon"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/><path d="M8 21h.01"/><path d="M12 21h.01"/><path d="M16 21h.01"/></svg>`,
-    'snow-shower': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-icon"><path d="M12 2v2"/><path d="M15.5 8.5A5.5 5.5 0 0 0 5 13a4.5 4.5 0 0 0 4.5 4.5h8.5a4 4 0 0 0 4-4 4.5 4.5 0 0 0-6.5-5z"/><path d="M10 19h.01"/><path d="M14 19h.01"/></svg>`,
-    'sleet': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-icon"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17-1.5 3"/><path d="M12 18h.01"/><path d="m16 17-1.5 3"/></svg>`,
     'thunderstorm': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-icon"><path d="M17.5 19H9a5 5 0 0 1-5-5c0-2.5 1.8-4.6 4.2-4.9A6 6 0 0 1 19 11.2a4 4 0 0 1-1.5 7.8z"/><path d="m13 12-3 5h4l-2 5"/></svg>`,
-    'thunder-hail': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-icon"><path d="M17.5 19H9a5 5 0 0 1-5-5c0-2.5 1.8-4.6 4.2-4.9A6 6 0 0 1 19 11.2a4 4 0 0 1-1.5 7.8z"/><path d="m13 11-3 4h4l-2 4"/><path d="M8 20h.01"/><path d="M16 20h.01"/></svg>`,
     'moon-stars': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-icon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M19 3v4"/><path d="M21 5h-4"/></svg>`,
     'moon-cloud': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-icon"><path d="M10.1 2.182a10 10 0 0 0 3.1 8.718A5.5 5.5 0 0 1 17 19H9a5 5 0 0 1-5-5c0-2.5 1.8-4.6 4.2-4.9A6 6 0 0 1 10.1 2.18z"/></svg>`
   };
 
-  /**
-   * Helper to retrieve SVG markup
-   */
   function getIconSvg(iconName) {
     return ICONS[iconName] || ICONS['cloud'];
+  }
+
+  /**
+   * Update static UI text labels based on current language
+   */
+  function updateStaticLabels() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      el.textContent = I18n.t(key);
+    });
+
+    const searchInput = document.getElementById('citySearchInput');
+    if (searchInput) searchInput.placeholder = I18n.t('searchPlaceholder');
+
+    const langBtn = document.getElementById('langToggleBtn');
+    if (langBtn) langBtn.textContent = I18n.getLang() === 'vi' ? 'Tiếng Việt' : 'English';
   }
 
   /**
@@ -70,31 +79,29 @@ const UIManager = (() => {
       const maxT = WeatherEngine.formatTemp(daily.temperature_2m_max[0], unit);
       const minT = WeatherEngine.formatTemp(daily.temperature_2m_min[0], unit);
       const feelsLike = WeatherEngine.formatTemp(current.apparent_temperature, unit);
-      tempRange.innerHTML = `<span>H: ${maxT}</span> <span>L: ${minT}</span> <span class="hero-feels">Feels like ${feelsLike}</span>`;
+      tempRange.innerHTML = `<span>${I18n.t('high')}: ${maxT}</span> <span>${I18n.t('low')}: ${minT}</span> <span class="hero-feels">${I18n.t('feelsLike')} ${feelsLike}</span>`;
     }
 
     if (heroIcon) {
       heroIcon.innerHTML = getIconSvg(weatherInfo.icon);
     }
 
-    // Favorite state
     if (heroFavBtn) {
       const isFav = StorageManager.isFavorite(location.latitude, location.longitude);
       heroFavBtn.classList.toggle('active', isFav);
-      heroFavBtn.setAttribute('title', isFav ? 'Remove from favorites' : 'Add to favorites');
+      heroFavBtn.setAttribute('title', isFav ? I18n.t('favRemove') : I18n.t('favAdd'));
     }
 
-    // Update Live Clock based on timezone
     if (heroClock) {
       try {
-        const timeStr = new Date().toLocaleTimeString('en-US', {
+        const timeStr = new Date().toLocaleTimeString(I18n.getLang() === 'vi' ? 'vi-VN' : 'en-US', {
           timeZone: location.timezone !== 'auto' ? location.timezone : undefined,
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit',
           hour12: false
         });
-        heroClock.textContent = `${timeStr} (Local)`;
+        heroClock.textContent = `${timeStr} (${I18n.t('localTime')})`;
       } catch (e) {
         heroClock.textContent = '';
       }
@@ -123,7 +130,7 @@ const UIManager = (() => {
       `;
     }
 
-    // 2. Wind Vector & Speed
+    // 2. Wind Vector
     const windSpeed = current.wind_speed_10m || 0;
     const windGusts = current.wind_gusts_10m || windSpeed;
     const windDir = current.wind_direction_10m || 0;
@@ -134,11 +141,11 @@ const UIManager = (() => {
         <div class="wind-metric-row">
           <div class="metric-val">${WeatherEngine.formatWindSpeed(windSpeed, unit)}</div>
           <div class="wind-compass-circle" style="transform: rotate(${windDir}deg);">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
           </div>
         </div>
-        <div class="metric-badge">Heading: ${windCompass} (${windDir}°)</div>
-        <div class="metric-desc">Gusts up to ${WeatherEngine.formatWindSpeed(windGusts, unit)}</div>
+        <div class="metric-badge">${I18n.getLang() === 'vi' ? 'Hướng' : 'Heading'}: ${windCompass} (${windDir}°)</div>
+        <div class="metric-desc">${I18n.t('gusts')}: ${WeatherEngine.formatWindSpeed(windGusts, unit)}</div>
       `;
     }
 
@@ -149,8 +156,8 @@ const UIManager = (() => {
     if (humEl) {
       humEl.innerHTML = `
         <div class="metric-val">${humidity}%</div>
-        <div class="metric-badge">${humidity > 70 ? 'High Moisture' : humidity < 35 ? 'Dry Air' : 'Comfortable'}</div>
-        <div class="metric-desc">${dewPoint !== null ? `Dew point is ${WeatherEngine.formatTemp(dewPoint, unit)}` : 'Optimal ambient moisture'}</div>
+        <div class="metric-badge">${humidity > 70 ? (I18n.getLang() === 'vi' ? 'Độ ẩm cao' : 'High Moisture') : (I18n.getLang() === 'vi' ? 'Dễ chịu' : 'Comfortable')}</div>
+        <div class="metric-desc">${dewPoint !== null ? `${I18n.getLang() === 'vi' ? 'Điểm sương' : 'Dew point'} ${WeatherEngine.formatTemp(dewPoint, unit)}` : ''}</div>
         <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: ${humidity}%; background: linear-gradient(90deg, #38bdf8, #6366f1);"></div></div>
       `;
     }
@@ -181,11 +188,10 @@ const UIManager = (() => {
     const pressEl = document.getElementById('metricPressure');
     if (pressEl) {
       const pressFormatted = unit === 'imperial' ? `${(pressure * 0.02953).toFixed(2)} inHg` : `${Math.round(pressure)} hPa`;
-      const pStatus = pressure > 1018 ? 'High Pressure (Stable)' : pressure < 1008 ? 'Low Pressure (Stormy)' : 'Standard Pressure';
       pressEl.innerHTML = `
         <div class="metric-val">${pressFormatted}</div>
-        <div class="metric-badge">${pStatus}</div>
-        <div class="metric-desc">${pressure > 1013 ? 'Fair, clear skies prevailing' : 'Precipitation or wind likely'}</div>
+        <div class="metric-badge">${pressure > 1015 ? (I18n.getLang() === 'vi' ? 'Khí áp cao (Ổn định)' : 'High Pressure') : (I18n.getLang() === 'vi' ? 'Áp suất bình thường' : 'Normal Pressure')}</div>
+        <div class="metric-desc">${I18n.getLang() === 'vi' ? 'Khí quyển ổn định' : 'Atmospheric stability'}</div>
       `;
     }
 
@@ -195,11 +201,10 @@ const UIManager = (() => {
     const visEl = document.getElementById('metricVisibility');
     if (visEl) {
       const visFormatted = unit === 'imperial' ? `${(visKm * 0.621371).toFixed(1)} mi` : `${visKm.toFixed(1)} km`;
-      const visStatus = visKm >= 10 ? 'Crystal Clear' : visKm >= 5 ? 'Good Clarity' : 'Hazy / Low Visibility';
       visEl.innerHTML = `
         <div class="metric-val">${visFormatted}</div>
-        <div class="metric-badge">${visStatus}</div>
-        <div class="metric-desc">${visKm >= 10 ? 'Perfect horizon visibility' : 'Caution during fast transit'}</div>
+        <div class="metric-badge">${visKm >= 10 ? (I18n.getLang() === 'vi' ? 'Rất trong' : 'Crystal Clear') : (I18n.getLang() === 'vi' ? 'Bình thường' : 'Good')}</div>
+        <div class="metric-desc">${I18n.getLang() === 'vi' ? 'Tầm nhìn thông thoáng' : 'Optimal visibility'}</div>
       `;
     }
 
@@ -209,8 +214,8 @@ const UIManager = (() => {
     if (cloudEl) {
       cloudEl.innerHTML = `
         <div class="metric-val">${cloudCover}%</div>
-        <div class="metric-badge">${cloudCover > 80 ? 'Heavy Overcast' : cloudCover > 40 ? 'Partly Cloudy' : 'Clear Skies'}</div>
-        <div class="metric-desc">Atmospheric sky saturation</div>
+        <div class="metric-badge">${cloudCover > 80 ? (I18n.getLang() === 'vi' ? 'Nhiều mây' : 'Heavy Cloud') : (I18n.getLang() === 'vi' ? 'Ít mây' : 'Clear')}</div>
+        <div class="metric-desc">${I18n.getLang() === 'vi' ? 'Tỷ lệ che phủ bầu trời' : 'Sky saturation'}</div>
         <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: ${cloudCover}%; background: linear-gradient(90deg, #94a3b8, #64748b);"></div></div>
       `;
     }
@@ -222,30 +227,25 @@ const UIManager = (() => {
     if (precipEl) {
       precipEl.innerHTML = `
         <div class="metric-val">${precipProb}%</div>
-        <div class="metric-badge">${precipSum > 0 ? `${precipSum.toFixed(1)} mm volume` : 'No expected rain'}</div>
-        <div class="metric-desc">${precipProb > 50 ? 'Umbrella recommended' : 'Dry conditions expected'}</div>
+        <div class="metric-badge">${precipSum > 0 ? `${precipSum.toFixed(1)} mm` : (I18n.getLang() === 'vi' ? 'Không mưa' : 'Dry')}</div>
+        <div class="metric-desc">${precipProb > 50 ? (I18n.getLang() === 'vi' ? 'Nên mang theo ô' : 'Umbrella suggested') : (I18n.getLang() === 'vi' ? 'Khô ráo' : 'Dry conditions')}</div>
         <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: ${precipProb}%; background: linear-gradient(90deg, #06b6d4, #3b82f6);"></div></div>
       `;
     }
   }
 
   /**
-   * Render Ephemeris: Sun Arc & Moon Phase
+   * Render Ephemeris
    */
   function renderEphemeris(weatherData) {
     const daily = weatherData.daily;
     if (!daily || !daily.sunrise || !daily.sunset) return;
 
-    const sunriseIso = daily.sunrise[0];
-    const sunsetIso = daily.sunset[0];
-    const solarInfo = WeatherEngine.calculateSolarPosition(sunriseIso, sunsetIso);
+    const solarInfo = WeatherEngine.calculateSolarPosition(daily.sunrise[0], daily.sunset[0]);
     const moonInfo = WeatherEngine.getMoonPhase(new Date());
-
     const ephemerisContainer = document.getElementById('ephemerisWidget');
     if (!ephemerisContainer) return;
 
-    // Calculate position on SVG arc
-    // Semicircle arc: Start at (30, 90), peak at (150, 20), end at (270, 90)
     const angle = Math.PI - solarInfo.progress * Math.PI;
     const r = 110;
     const cx = 150;
@@ -255,9 +255,8 @@ const UIManager = (() => {
 
     ephemerisContainer.innerHTML = `
       <div class="ephemeris-grid">
-        <!-- Sun Arc -->
         <div class="ephemeris-sun-card">
-          <div class="widget-subtitle">Solar Path & Daylight</div>
+          <div class="widget-subtitle">${I18n.t('solarPath')}</div>
           <div class="sun-arc-svg-wrap">
             <svg viewBox="0 0 300 120" class="sun-arc-svg">
               <defs>
@@ -267,46 +266,42 @@ const UIManager = (() => {
                   <stop offset="100%" stop-color="#f97316"/>
                 </linearGradient>
               </defs>
-              <path d="M 40 100 A 110 70 0 0 1 260 100" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3" stroke-dasharray="5"/>
-              <path d="M 40 100 A 110 70 0 0 1 ${sunX} ${sunY}" fill="none" stroke="url(#sunArcGrad)" stroke-width="4"/>
+              <path d="M 40 100 A 110 70 0 0 1 260 100" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-dasharray="4"/>
+              <path d="M 40 100 A 110 70 0 0 1 ${sunX} ${sunY}" fill="none" stroke="url(#sunArcGrad)" stroke-width="3.5"/>
               <line x1="20" y1="100" x2="280" y2="100" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-              <!-- Sun Marker -->
-              <circle cx="${sunX}" cy="${sunY}" r="7" fill="#fbbf24" stroke="#ffffff" stroke-width="2"/>
+              <circle cx="${sunX}" cy="${sunY}" r="6" fill="#fbbf24" stroke="#ffffff" stroke-width="2"/>
             </svg>
           </div>
           <div class="sun-times-row">
             <div class="sun-time-block">
-              <span class="st-label">Sunrise</span>
+              <span class="st-label">${I18n.t('sunrise')}</span>
               <span class="st-val">${solarInfo.sunriseFormatted}</span>
             </div>
             <div class="sun-time-block center">
-              <span class="st-label">Daylight</span>
-              <span class="st-val">${solarInfo.daylightHours} hrs</span>
+              <span class="st-label">${I18n.t('daylight')}</span>
+              <span class="st-val">${solarInfo.daylightHours} ${I18n.getLang() === 'vi' ? 'giờ' : 'hrs'}</span>
             </div>
             <div class="sun-time-block">
-              <span class="st-label">Sunset</span>
+              <span class="st-label">${I18n.t('sunset')}</span>
               <span class="st-val">${solarInfo.sunsetFormatted}</span>
             </div>
           </div>
           <div class="golden-hour-info">
-            <span>Golden Hour: <b>${solarInfo.goldenHourEvening}</b></span>
+            <span>${I18n.t('goldenHour')}: <b>${solarInfo.goldenHourEvening}</b></span>
           </div>
         </div>
 
-        <!-- Moon Card -->
         <div class="ephemeris-moon-card">
-          <div class="widget-subtitle">Lunar Ephemeris</div>
+          <div class="widget-subtitle">${I18n.t('lunarEphemeris')}</div>
           <div class="moon-display">
-            <div class="moon-icon-wrapper">
-              <svg viewBox="0 0 64 64" width="56" height="56" class="moon-svg">
-                <circle cx="32" cy="32" r="28" fill="#1e293b" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-                <path d="M32 4 A 28 28 0 0 1 32 60 A ${28 * (1 - moonInfo.illumination / 50)} 28 0 0 ${moonInfo.illumination > 50 ? '1' : '0'} 32 4" fill="#e2e8f0"/>
-              </svg>
-            </div>
+            <svg viewBox="0 0 64 64" width="48" height="48">
+              <circle cx="32" cy="32" r="26" fill="#1e293b" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+              <path d="M32 6 A 26 26 0 0 1 32 58 A ${26 * (1 - moonInfo.illumination / 50)} 26 0 0 ${moonInfo.illumination > 50 ? '1' : '0'} 32 6" fill="#e2e8f0"/>
+            </svg>
             <div class="moon-info-text">
               <div class="moon-phase-name">${moonInfo.phaseName}</div>
-              <div class="moon-illumination">${moonInfo.illumination}% Illumination</div>
-              <div class="moon-age">Lunar cycle day ${moonInfo.ageDays}</div>
+              <div class="moon-illumination">${moonInfo.illumination}% ${I18n.t('illumination')}</div>
+              <div class="moon-age">${I18n.t('lunarAge')}: ${moonInfo.ageDays}</div>
             </div>
           </div>
         </div>
@@ -322,7 +317,6 @@ const UIManager = (() => {
     const container = document.getElementById('dailyForecastContainer');
     if (!container || !daily || !daily.time) return;
 
-    // Calculate global weekly min and max to scale horizontal temperature bars
     let allMax = [];
     let allMin = [];
     for (let i = 0; i < daily.time.length; i++) {
@@ -334,12 +328,12 @@ const UIManager = (() => {
     const globalRange = Math.max(globalMax - globalMin, 1);
 
     let html = '';
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayNames = I18n.t('days');
 
     for (let i = 0; i < Math.min(daily.time.length, 7); i++) {
       const dateObj = new Date(daily.time[i]);
       const isToday = i === 0;
-      const dayLabel = isToday ? 'Today' : dayNames[dateObj.getDay()];
+      const dayLabel = isToday ? I18n.t('today') : dayNames[dateObj.getDay()];
       const dateFormatted = `${dateObj.getDate()}/${dateObj.getMonth() + 1}`;
 
       const code = daily.weather_code[i];
@@ -348,7 +342,6 @@ const UIManager = (() => {
       const maxTemp = daily.temperature_2m_max[i];
       const rainProb = daily.precipitation_probability_max ? daily.precipitation_probability_max[i] : 0;
 
-      // Bar positioning relative to global weekly bounds
       const leftPercent = ((minTemp - globalMin) / globalRange) * 100;
       const barWidth = Math.max(8, ((maxTemp - minTemp) / globalRange) * 100);
 
@@ -377,7 +370,7 @@ const UIManager = (() => {
   }
 
   /**
-   * Render Smart Lifestyle & Activity Intelligence
+   * Render Lifestyle Advisory
    */
   function renderLifestyle(weatherData, aqiData) {
     const lifestyle = WeatherEngine.computeLifestyleIndex(weatherData, aqiData);
@@ -390,10 +383,8 @@ const UIManager = (() => {
         <div class="severe-alert-box">
           ${lifestyle.warnings.map(w => `
             <div class="alert-item">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f59e0b" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <div>
-                <b>${w.title}:</b> ${w.desc}
-              </div>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div><b>${w.title}:</b> ${w.desc}</div>
             </div>
           `).join('')}
         </div>
@@ -403,38 +394,35 @@ const UIManager = (() => {
     container.innerHTML = `
       ${warningsHtml}
       <div class="lifestyle-grid">
-        <!-- Running Score -->
         <div class="lifestyle-item">
           <div class="ls-header">
-            <span class="ls-title">Running & Fitness</span>
-            <span class="ls-badge badge-${lifestyle.runLevel.toLowerCase()}">${lifestyle.runLevel} (${lifestyle.runScore}/100)</span>
+            <span class="ls-title">${I18n.t('runTitle')}</span>
+            <span class="ls-badge badge-${lifestyle.runScore >= 80 ? 'ideal' : lifestyle.runScore >= 60 ? 'good' : 'moderate'}">${lifestyle.runLevel} (${lifestyle.runScore}/100)</span>
           </div>
-          <div class="ls-desc">${lifestyle.runScore > 75 ? 'Optimal thermal & breathable conditions.' : 'Adjust exertion based on current weather.'}</div>
+          <div class="ls-desc">${lifestyle.runScore > 75 ? I18n.t('runDescIdeal') : I18n.t('runDescMod')}</div>
         </div>
 
-        <!-- Laundry Drying -->
         <div class="lifestyle-item">
           <div class="ls-header">
-            <span class="ls-title">Outdoor Laundry</span>
+            <span class="ls-title">${I18n.t('laundryTitle')}</span>
             <span class="ls-badge">${lifestyle.laundryRating}</span>
           </div>
-          <div class="ls-desc">Est. dry time: ${lifestyle.laundryHours}</div>
+          <div class="ls-desc">${lifestyle.laundryHours}</div>
         </div>
 
-        <!-- Clothing Suggestion -->
         <div class="lifestyle-item">
           <div class="ls-header">
-            <span class="ls-title">Outfit Advisor</span>
+            <span class="ls-title">${I18n.t('outfitTitle')}</span>
             <span class="ls-badge">${lifestyle.clothing}</span>
           </div>
-          <div class="ls-desc">${lifestyle.clothingDetail} ${lifestyle.umbrellaRequired ? '• <b>Pack an umbrella</b>' : ''}</div>
+          <div class="ls-desc">${lifestyle.clothingDetail} ${lifestyle.umbrellaRequired ? `• <b>${I18n.t('packUmbrella')}</b>` : ''}</div>
         </div>
       </div>
     `;
   }
 
   /**
-   * Render Favorite Locations Chips Tray
+   * Render Favorites Tray
    */
   function renderFavoritesTray(onSelect, onRemove) {
     const tray = document.getElementById('favoritesTray');
@@ -442,7 +430,7 @@ const UIManager = (() => {
 
     const favorites = StorageManager.getFavorites();
     if (favorites.length === 0) {
-      tray.innerHTML = `<div class="fav-empty">No favorite cities saved. Click the star icon to pin your top locations.</div>`;
+      tray.innerHTML = `<div class="fav-empty">${I18n.t('noFavorites')}</div>`;
       return;
     }
 
@@ -450,12 +438,12 @@ const UIManager = (() => {
     favorites.forEach(fav => {
       html += `
         <div class="fav-chip" data-id="${fav.id}">
-          <button class="fav-chip-btn" type="button" title="Switch to ${fav.name}">
+          <button class="fav-chip-btn" type="button" title="${fav.name}">
             <span class="fav-name">${fav.name}</span>
             <span class="fav-country">${fav.countryCode || ''}</span>
           </button>
-          <button class="fav-chip-del" type="button" title="Remove" data-del-id="${fav.id}">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <button class="fav-chip-del" type="button" title="Xóa" data-del-id="${fav.id}">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
       `;
@@ -463,11 +451,9 @@ const UIManager = (() => {
 
     tray.innerHTML = html;
 
-    // Attach listeners
     tray.querySelectorAll('.fav-chip-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const chip = btn.closest('.fav-chip');
-        const id = chip.dataset.id;
+        const id = btn.closest('.fav-chip').dataset.id;
         const target = favorites.find(f => f.id === id);
         if (target && onSelect) onSelect(target);
       });
@@ -490,7 +476,7 @@ const UIManager = (() => {
     if (!dropdown) return;
 
     if (!results || results.length === 0) {
-      dropdown.innerHTML = `<div class="search-empty">No matching cities found. Check spelling or try a larger city.</div>`;
+      dropdown.innerHTML = `<div class="search-empty">${I18n.getLang() === 'vi' ? 'Không tìm thấy địa điểm phù hợp.' : 'No locations found.'}</div>`;
       dropdown.style.display = 'block';
       return;
     }
@@ -524,9 +510,6 @@ const UIManager = (() => {
     });
   }
 
-  /**
-   * Toggle Skeleton Loading Placeholders
-   */
   function setLoadingState(isLoading) {
     const dashboard = document.getElementById('dashboardContent');
     const skeleton = document.getElementById('skeletonPlaceholder');
@@ -541,9 +524,6 @@ const UIManager = (() => {
     }
   }
 
-  /**
-   * Toast notification display
-   */
   function showToast(message, type = 'info') {
     const toast = document.getElementById('appToast');
     if (!toast) return;
@@ -551,10 +531,11 @@ const UIManager = (() => {
     toast.className = `app-toast show toast-${type}`;
     setTimeout(() => {
       toast.className = 'app-toast';
-    }, 3500);
+    }, 3000);
   }
 
   return {
+    updateStaticLabels,
     renderHero,
     renderMetrics,
     renderEphemeris,

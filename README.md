@@ -1,121 +1,137 @@
 # Aetheris // Ultimate Weather & Atmospheric Intelligence Hub
 
-A zero-dependency, high-performance meteorological intelligence dashboard and atmospheric visualizer built with modern ES6+ and CSS3 Glassmorphic architecture. Powered directly by the Open-Meteo API suite without requiring API keys.
+A multi-source atmospheric intelligence workstation and meteorological visualizer built with modern ES6+ and CSS3 Glassmorphic architecture. Supports seamless switching between the Open-Meteo API suite (Default, 100% Free, Zero API Keys Required), WeatherAPI, OpenWeatherMap, and the World Air Quality Index (WAQI).
 
 ---
 
-## Technical Overview (Tổng quan Kỹ thuật)
+## Technical Architecture (Kiến trúc Kỹ thuật)
 
 ### English
-Aetheris is an enterprise-grade weather workstation designed for real-time atmospheric observation, predictive meteorological modeling, and environmental air quality analysis. The application features a dynamic 60 FPS Canvas particle engine that renders live weather phenomena (rain vectors, multi-phase thunderstorms, convective snowfall, atmospheric fog, and starry celestial vaults) synchronized with World Meteorological Organization (WMO) weather interpretation codes.
+Aetheris implements a decoupled, multi-provider meteorological pipeline. The client-side state machine queries the designated provider, normalizes disparate payload schemas into a unified Aetheris Data Model, and executes hardware-accelerated 60-120 FPS Canvas shaders to visually simulate local precipitation, electrical storms, convective snowfall, and celestial ephemeris in real time.
 
 ### Tiếng Việt
-Aetheris là bảng điều khiển khí tượng thông minh thế hệ mới, phục vụ việc quan trắc khí quyển theo thời gian thực, dự báo thời tiết chuyên sâu và phân tích chất lượng không khí. Ứng dụng tích hợp công nghệ đồ họa Canvas 60 FPS mô phỏng trực quan các hiện tượng thời tiết (mưa rơi vật lý, sấm chớp giật thể tích, tuyết rơi đa lớp, sương mù và bầu trời sao ban đêm) đồng bộ hoàn toàn với mã thời tiết chuẩn WMO.
-
----
-
-## Architectural Topology (Kiến trúc Hệ thống)
+Aetheris triển khai kiến trúc đường ống dữ liệu đa nguồn (Multi-Provider Pipeline). Tầng dịch vụ chuẩn hóa dữ liệu từ các nhà cung cấp khác nhau thành một cấu trúc chuẩn chung, điều khiển bộ kết xuất đồ họa Canvas 60-120 FPS mô phỏng trực quan lượng mưa, bão sét, tuyết rơi và vòng cung thiên văn mặt trời / mặt trăng theo thời gian thực.
 
 ```
 ultimate-weather-hub/
-├── index.html                  # Semantic Glassmorphic single-page architecture
+├── index.html                  # Semantic Glassmorphic document architecture
 ├── css/
-│   ├── style.css               # Design system tokens, layout grids, typography, animations
-│   └── weather-effects.css     # Atmospheric gradients, glass shaders, glow effects
+│   ├── style.css               # Design system tokens, auto-responsive grids, modal styles
+│   └── weather-effects.css     # Hardware-accelerated gradients & ambient lighting
 ├── js/
-│   ├── app.js                  # Application controller, lifecycle, and event coordination
-│   ├── api.js                  # Open-Meteo REST service (Forecast, Geocoding, Air Quality)
-│   ├── weatherEngine.js        # WMO interpreter, astronomy math, lifestyle heuristics
-│   ├── canvasEffects.js        # 60 FPS GPU-accelerated atmospheric particle engine
-│   ├── chartManager.js         # Interactive SVG cubic Bezier curve & scrubber engine
-│   ├── storage.js              # LocalStorage state persistence (favorites, units, history)
-│   └── ui.js                   # Reactive DOM rendering, skeleton loaders, toast dispatcher
+│   ├── config.js               # Safe configuration template (Zero hardcoded secrets)
+│   ├── i18n.js                 # Complete bilingual (Vietnamese / English) localization
+│   ├── storage.js              # LocalStorage manager (favorites, units, custom keys)
+│   ├── weatherEngine.js        # WMO code processor, astronomy math, lifestyle heuristics
+│   ├── api.js                  # Multi-provider REST client (Open-Meteo, WeatherAPI, OWM, WAQI)
+│   ├── canvasEffects.js        # 120 FPS GPU-accelerated atmospheric particle engine
+│   ├── chartManager.js         # Interactive SVG Bezier curve & RAF scrubber engine
+│   ├── ui.js                   # Reactive DOM component renderer & modal controller
+│   └── app.js                  # Application state orchestrator and event dispatcher
+├── server.js                   # Zero-dependency local development server
 ├── assets/
-│   └── favicon.svg             # Vector brand glyph
-├── .gitignore                  # Git VCS exclusions
+│   └── favicon.svg             # Vector glyph
+├── .gitignore                  # VCS exclusion rules
 ├── LICENSE                     # MIT License
-└── README.md                   # Technical documentation
+└── README.md                   # Technical documentation & API guide
 ```
 
 ---
 
-## Data Pipeline & Open-Meteo Integration (Luồng Dữ liệu & Tích hợp API)
+## Data Providers & API Key Guide (Hướng dẫn Lấy & Cài đặt API Key)
 
-The system communicates asynchronously with three endpoints provided by Open-Meteo. No authentication tokens or rate-limiting registration keys are needed.
+Aetheris is engineered to run **out of the box with zero configuration** using the Open-Meteo suite. If you require specialized ground radar or commercial sensor data, you can optionally configure personal API keys.
 
-### 1. Weather Forecast API
-* **Endpoint:** `https://api.open-meteo.com/v1/forecast`
-* **Resolution:** Hourly (24 hours) and Daily (8 days) synoptic parameters.
-* **Captured Variables:** Surface temperature ($2\text{m}$), apparent ("feels like") temperature, relative humidity, dew point, barometric pressure at mean sea level (MSL), wind speed ($10\text{m}$), wind gusts, wind vector angle, cloud cover fraction, UV index, and WMO classification codes.
-
-### 2. Geocoding API
-* **Endpoint:** `https://geocoding-api.open-meteo.com/v1/search`
-* **Capabilities:** Real-time city search with 300ms debounced queries, returning localized administrative subdivisions, ISO country codes, geographic coordinates, and timezones.
-
-### 3. Air Quality API
-* **Endpoint:** `https://air-quality-api.open-meteo.com/v1/air-quality`
-* **Pollutant Matrix:** US Air Quality Index (AQI), European AQI, particulate matter concentrations ($\text{PM}_{2.5}$ and $\text{PM}_{10}$), nitrogen dioxide ($\text{NO}_2$), sulfur dioxide ($\text{SO}_2$), carbon monoxide ($\text{CO}$), and tropospheric ozone ($\text{O}_3$).
+**Security Policy:** Never commit private API keys to GitHub or public repositories. Keys should be entered directly through the in-app **API Settings Modal (Cài đặt API)** where they are stored locally and encrypted within your browser `localStorage`.
 
 ---
 
-## Core Capabilities (Tính năng Cốt lõi)
+### 1. Open-Meteo Suite (Default / Mặc định)
+* **Status:** Built-in. 100% Free. No API key required.
+* **Coverage:** Global high-resolution numerical weather prediction models (ECMWF IFS, NOAA GFS, DWD ICON).
+* **Endpoints:** Forecast API, Geocoding API, Air Quality API.
 
-### English
-* **Real-time Glassmorphism Dashboard:** Translucent frosted glass layers (`backdrop-filter: blur(20px)`), dynamic typography hierarchy, and reactive ambient lighting orbs.
-* **Atmospheric Canvas Engine:** Hardware-accelerated 2D canvas simulation updating dynamically based on current solar elevation and WMO weather codes.
-* **Interactive Dynamics Chart:** Custom SVG cubic Bezier curves with mouse and touch hover scrubbers providing real-time trajectory readings for Temperature, Rain Probability, and Wind Gusts.
-* **7-Day Synoptic Progression:** Compact multi-day forecast with horizontal thermal distribution sliders calibrated to weekly extremes.
-* **Deep Atmospheric Metrics:** 8 specialized telemetry cards covering UV exposure safety, rotating wind compass vector, moisture saturation, barometric stability, and air pollutant breakdown.
-* **Solar & Lunar Ephemeris:** Dynamic solar trajectory arc calculating daylight duration, sunrise/sunset, Golden Hour windows, and lunar phase illumination cycles.
-* **Lifestyle & Environmental Safety Advisory:** Automated calculations for running and cycling suitability, outdoor laundry drying speed, clothing layering advice, and severe weather warnings.
-* **Dual Unit System:** Instant toggle between Metric (°C, km/h, mm, hPa) and Imperial (°F, mph, in, inHg) systems.
-* **Local Persistence:** Client-side storage for favorite cities, default coordinates, and UI configurations.
+---
 
-### Tiếng Việt
-* **Giao diện Kính mờ (Glassmorphism):** Phối hợp lớp phủ kính bán trong suốt với bộ lọc mờ nền, phân cấp font chữ chuẩn xác và hiệu ứng ánh sáng môi trường chuyển màu động.
-* **Bộ mô phỏng Hạt Khí quyển (Canvas Engine):** Tái hiện chân thực hạt mưa rơi nghiêng, bão sét giật màn hình, bông tuyết trôi đa tầng, sương mờ và bầu trời đầy sao ban đêm.
-* **Biểu đồ Đường cong Tương tác:** Sử dụng thuật toán đường cong Cubic Bezier mượt mà, hỗ trợ rê chuột hoặc cảm ứng để xem chi tiết theo từng mốc thời gian thực.
-* **Dự báo 7 Ngày Chuyên sâu:** Thanh trượt nhiệt độ trực quan so sánh biên độ nhiệt ngày với khoảng nhiệt độ cực đại/cực tiểu của toàn tuần.
-* **Hệ thống 8 Chỉ số Khí tượng Mở rộng:** Bức xạ UV, la bàn gió xoay hướng thực tế, độ ẩm và điểm sương, nồng độ bụi mịn PM2.5/PM10, áp suất khí quyển và tầm nhìn xa.
-* **Vòng cung Thiên văn Mặt trời & Mặt trăng:** Theo dõi độ cao mặt trời theo giờ thực tế, xác định khoảng thời gian Giờ Vàng (Golden Hour) và chu kỳ trăng khuyết/tròn.
-* **Chỉ số Phong cách sống & Cảnh báo An toàn:** Đánh giá điều kiện chạy bộ, thời gian khô quần áo ngoài trời, gợi ý trang phục phù hợp và cảnh báo hiện tượng thời tiết cực đoan.
-* **Chuyển đổi Hệ đơn vị Linh hoạt:** Hỗ trợ chuẩn Metric (°C, km/h, mm, hPa) và Imperial (°F, mph, in, inHg).
-* **Lưu trữ Cục bộ Thông minh:** Tự động ghi nhớ danh sách thành phố yêu thích và cài đặt hiển thị vào LocalStorage.
+### 2. WeatherAPI.com (Optional / Tùy chọn)
+* **Plan:** Free Tier (1,000,000 calls / month).
+* **How to acquire:**
+  1. Register an account at [https://www.weatherapi.com/signup.aspx](https://www.weatherapi.com/signup.aspx).
+  2. Confirm your email and navigate to your API Dashboard.
+  3. Copy your API Key.
+* **How to configure:**
+  - Click the **API Settings (Cài đặt API)** gear icon in the app header.
+  - Select `WeatherAPI.com` as the primary provider and paste your key.
+  - Click **Save Config (Lưu cấu hình)**.
+
+---
+
+### 3. OpenWeatherMap (Optional / Tùy chọn)
+* **Plan:** Free Tier (1,000 API calls / day).
+* **How to acquire:**
+  1. Register an account at [https://home.openweathermap.org/users/sign_up](https://home.openweathermap.org/users/sign_up).
+  2. Navigate to the **API keys** tab in your profile.
+  3. Generate or copy your Default API key.
+* **How to configure:**
+  - Open **API Settings** in the app header.
+  - Select `OpenWeatherMap` and paste your key into the designated field.
+  - Click **Save Config**.
+
+---
+
+### 4. World Air Quality Index - WAQI (Optional / Tùy chọn)
+* **Plan:** Free non-commercial token.
+* **How to acquire:**
+  1. Request an API token at [https://aqicn.org/data-platform/token/](https://aqicn.org/data-platform/token/).
+  2. Enter your name and email to receive the token instantly.
+* **How to configure:**
+  - Open **API Settings** in the app.
+  - Paste your token into the **WAQI Ground Station Token** input.
+  - Click **Save Config**.
+
+---
+
+## Core Capabilities (Tính năng Nổi bật)
+
+| Feature (English) | Tính năng (Tiếng Việt) | Technical Specification |
+| :--- | :--- | :--- |
+| **Bilingual Localization** | **Đa ngôn ngữ Anh - Việt** | Full runtime switching for all 30+ WMO codes, lifestyle advice, astronomy, and UI labels. |
+| **Multi-Provider Engine** | **Động cơ Đa nguồn API** | Unified normalizer supporting Open-Meteo, WeatherAPI, and OpenWeatherMap with automatic fallback. |
+| **Auto-Responsive Layout** | **Tự động Căn chỉnh Màn hình** | Adaptive CSS grid scaling across Ultrawide, Desktop, Tablet, and Mobile without horizontal overflow. |
+| **120 FPS Canvas Engine** | **Mô phỏng Hạt Khí quyển 120 FPS** | GPU-accelerated 2D canvas with background throttling (`document.hidden`) and capped particle density. |
+| **Interactive Bezier Chart** | **Biểu đồ Động 24 Giờ** | Smooth SVG Cubic Bezier interpolation with RAF-throttled hover scrubbing for Temp, Rain, and Wind. |
+| **7-Day Synoptic Forecast** | **Dự báo 7 Ngày Chuyên sâu** | Min/Max daily range sliders normalized against weekly absolute extremes. |
+| **8 Deep Atmospheric Metrics** | **8 Chỉ số Khí tượng Nâng cao** | UV index, rotating wind vector, humidity, dew point, US AQI, PM2.5/PM10, pressure, and visibility. |
+| **Celestial Ephemeris** | **Vòng cung Mặt trời & Mặt trăng** | Real-time solar trajectory angle calculation, Golden Hour tracking, and lunar phase illumination. |
+| **Lifestyle & Safety Index** | **Chỉ số Phong cách sống & Cảnh báo** | Automated ratings for running/fitness, outdoor laundry drying, outfit suggestions, and storm warnings. |
 
 ---
 
 ## Keyboard Shortcuts (Phím tắt Điều khiển)
 
-| Key Binding | Function (English) | Chức năng (Tiếng Việt) |
-| :--- | :--- | :--- |
-| `/` | Focus search bar | Kích hoạt thanh tìm kiếm địa điểm |
-| `L` | Detect GPS location | Xác định tọa độ vị trí hiện tại |
-| `U` | Toggle unit system (Metric / Imperial) | Chuyển đổi hệ đơn vị (°C / °F) |
-| `F` | Toggle favorite state for active city | Thêm / Xóa thành phố yêu thích |
-| `Esc` | Close search dropdown | Đóng menu gợi ý tìm kiếm |
+* `/` : Focus and select search bar (Kích hoạt thanh tìm kiếm)
+* `L` : Detect HTML5 GPS coordinates (Định vị tọa độ hiện tại)
+* `U` : Toggle unit system Metric / Imperial (Chuyển đổi °C / °F)
+* `F` : Toggle favorite location state (Thêm / Bỏ ghim địa điểm)
+* `Esc` : Dismiss dropdowns and modal dialogs (Đóng cửa sổ tìm kiếm / cài đặt)
 
 ---
 
-## Quickstart & Local Execution (Hướng dẫn Cài đặt & Khởi chạy)
+## Local Development (Khởi chạy Cục bộ)
 
-Since Aetheris has zero external build dependencies or npm requirements, it can be launched immediately in any modern web browser or statically served.
+Aetheris has zero build dependencies and runs directly in any modern browser.
 
-### Direct Execution
-Open `index.html` directly in Google Chrome, Mozilla Firefox, Microsoft Edge, or Safari.
-
-### Local HTTP Server
-For production-identical asset loading:
 ```bash
-# Using Python 3
-python -m http.server 8080
+# Using the built-in zero-dependency static server
+node server.js
 
-# Or using Node.js npx serve
-npx serve .
+# Or using Python
+python -m http.server 3000
 ```
-Navigate to `http://localhost:8080` in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your web browser.
 
 ---
 
 ## License (Giấy phép)
 
-Distributed under the open-source MIT License. See [LICENSE](LICENSE) for complete details.
+Distributed under the open-source MIT License. See [LICENSE](LICENSE) for details.
